@@ -37,7 +37,7 @@ pipeline {
 
         stage('Nexus') {
             steps {
-                sh 'curl -u "$NEXUS_CREDS_USR:NEXUS_CREDS_PSW" --upload-file target/Spring-Boot-application.-0.0.1-SNAPSHOT.jar http://4.213.227.29:8081/repository/maven-snapshots/Spring-Boot-application-0.0.1-SNAPSHOT.jar'
+                sh 'curl -u "$NEXUS_CREDS_USR:$NEXUS_CREDS_PSW" --upload-file target/Spring-Boot-application.-0.0.1-SNAPSHOT.jar http://4.213.227.29:8081/repository/maven-snapshots/Spring-Boot-application-0.0.1-SNAPSHOT.jar'
             }
         }
 
