@@ -62,7 +62,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                kubectl create deployment spring-boot-app --image=${IMAGE_NAME}
+                kubectl set image deployment/spring-boot-app --spring-boot-app=${IMAGE_NAME}
                 kubectl expose deployment/spring-boot-app --port=80 --target-port=8080 --type=LoadBalancer
                 '''
             }
@@ -72,7 +72,7 @@ pipeline {
             steps {
                 sh '''
                 echo "Checking Application Health Check"
-                curl --fail http://4.187.165.225 || exit 1
+                curl --fail http://135.13.176.227 || exit 1
                 sleep 15
                 echo "Application is Healthy"
                 '''
