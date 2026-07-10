@@ -62,8 +62,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                kubectl set image deployment/spring-boot-app --spring-boot-app=${IMAGE_NAME}
-                kubectl expose deployment/spring-boot-app --port=80 --target-port=8080 --type=LoadBalancer
+                kubectl apply -f deployment.yaml
+                kubectl apply -f service.yaml
                 '''
             }
         }
