@@ -72,7 +72,7 @@ pipeline {
             steps {
                 sh '''
                 echo "Checking Application Health Check"
-                curl --fail https://localhost || exit 1
+                curl --fail http://4.187.165.225 || exit 1
                 sleep 15
                 echo "Application is Healthy"
                 '''
