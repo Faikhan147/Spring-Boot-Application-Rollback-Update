@@ -68,7 +68,7 @@ pipeline {
                 sh '''
                 echo "Checking Application Health Check"
                 sleep 15
-                curl --fail http://4.224.190.126/ || exit 1
+                curl --fail http://4.224.190.126d/ || exit 1
                 echo "Health Check is Failed"
                 '''
             }
