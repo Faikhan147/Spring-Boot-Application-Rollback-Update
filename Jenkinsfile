@@ -57,8 +57,7 @@ pipeline {
         stage('AKS Deploy') {
             steps {
                 sh '''
-                kubectl create deployment spring-boot-app --image=${IMAGE_IMAGE}:${TAG}
-                kubectl expose deployment spring-boot-app --port=80 --target-port=8080 --type=LoadBalancer
+                kubectl set image deployment/spring-boot-app spring-boot-app=${IMAGE_IMAGE}:${TAG}
                 '''
             }
         }
@@ -69,7 +68,7 @@ pipeline {
                 sh '''
                 echo "Checking Application Health Check"
                 sleep 15
-                curl --fail http:app || exit 1
+                curl --fail http://4.224.190.126/ || exit 1
                 echo "Health Check is Failed"
                 '''
             }
