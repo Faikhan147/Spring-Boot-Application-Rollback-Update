@@ -1,11 +1,13 @@
 pipeline {
 
-    agent any
+    agent any 
+  
 
     environment {
-        IMAGE_NAME = "faisalkhan35/spring-boot-app:latest"
-        NEXUS_CREDS = credentials('nexus_creds')
-        DOCKERHUB_CREDS = credentials('dockerhub_creds')
+    IMAGE_IMAGE = "faisalkhan35/spring-boot-app"
+    TAG = "${BUILD_NUMBER}"
+    NEXUS_CREDS = credentials('nexus-creds')
+    DOCKERHUB_CREDS = credentials('dockerhub-creds')
     }
 
     tools {
@@ -13,13 +15,7 @@ pipeline {
     }
 
     stages {
-
-        stage('Git Clone') {
-            steps {
-                checkout scm
-            }
-        }
-
+  
         stage('Maven Build') {
             steps {
                 sh 'mvn clean package'
@@ -34,20 +30,19 @@ pipeline {
             }
         }
 
-        stage('Nexus upload') {
+        stage('Nexus Upload') {
             steps {
-                sh 'curl -v -u $NEXUS_CREDS_USR:$NEXUS_CREDS_PSW --upload-file target/Spring-Boot-application.-0.0.1-SNAPSHOT.jar http://4.240.107.3:8081/repository/maven-snapshots/com/example/Spring-Boot-application./0.0.1-SNAPSHOT/Spring-Boot-application.-0.0.1-SNAPSHOT.jar'
+                sh 'curl -v -u $NEXUS_CREDS_USR:$NEXUS_CREDS_PSW --upload-file target/Spring-Boot-application.-0.0.1-SNAPSHOT.jar app.jar http://nexus-repo/repository/maven-snapshots/com/example/Spring-Boot-application./0.0.1-SNAPSHOT/Spring-Boot-application.-0.0.1-SNAPSHOT'
             }
         }
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME} .'
+                sh 'docker build -t ${IMAGE_IMAGE}:${TAG} .'
             }
         }
 
-
-        stage('Docker Login') {
+        stage('Docker Hub Login') {
             steps {
                 sh 'echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
             }
@@ -55,41 +50,41 @@ pipeline {
 
         stage('Docker Hub Push') {
             steps {
-                sh 'docker push ${IMAGE_NAME}'
+                sh 'docker push ${IMAGE_IMAGE}:${TAG}'
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('AKS Deploy') {
             steps {
                 sh '''
-                kubectl apply -f deployment.yaml
-                kubectl apply -f service.yaml
+                kubectl create deployment spring-boot-app --image=${IMAGE_IMAGE}:${TAG}
+                kubectl expose deployment spring-boot-app --port=80 --target-port=8080 --type=LoadBalancer
                 '''
             }
         }
+
 
         stage('Health Check') {
             steps {
                 sh '''
                 echo "Checking Application Health Check"
-                curl --fail http://135.13.176.227 || exit 1
                 sleep 15
-                echo "Application is Healthy"
+                curl --fail http:app || exit 1
+                echo "Health Check is Failed"
                 '''
             }
         }
-
     }
-
+ 
     post {
 
         success {
-            sh 'echo "Deployment is Successful"'
+            sh 'echo "Application is Successfully Deployed"'
         }
 
         failure {
             sh '''
-            echo "Deployment is Failed Rollback Initiated"
+            echo "Application Deployment is Failed rollback is initiated"
             kubectl rollout undo deployment/spring-boot-app
             '''
         }
